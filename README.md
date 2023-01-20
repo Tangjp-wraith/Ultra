@@ -1,2 +1,2 @@
 # Ultra
-A C++ Event-driven network library
+C++ Event-driven network library 
