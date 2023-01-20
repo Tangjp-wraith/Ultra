@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
-#include "util.h"
+#include "src/util.h"
 
 #define BUFFER_SIZE 1024 
 
