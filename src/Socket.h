@@ -9,11 +9,11 @@ public:
     Socket(int fd);
     ~Socket();
 
-    void bind(InetAddress *addr);
+    void bind(InetAddress *_addr);
     void listen();
     void setnonbocking();
 
-    int accept(InetAddress *addr);
+    int accept(InetAddress *_addr);
 
     int getFd();
 

@@ -25,4 +25,4 @@ void Channel::setInEpoll() { inEpoll=true; }
 
 void Channel::setRevents(uint32_t _ev) { revents=_ev; }
 
-void Channel::setCallback(std::function<void()> func) {callback=func;}
+void Channel::setCallback(std::function<void()> _callback) {callback=_callback;}
