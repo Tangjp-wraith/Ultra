@@ -1,12 +1,15 @@
 #include "Connection.h"
 #include "Socket.h"
 #include "Channel.h"
+#include "Buffer.h"
+#include "util.h"
 #include <unistd.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
+#include <iostream>
 
-#define READ_BUFFER 1024
+#define READ_BUFFER 1024 
 
 Connection::Connection(EventLoop* _loop, Socket* _sock) 
     :loop(_loop),sock(_sock),channel(nullptr) {
@@ -14,7 +17,8 @@ Connection::Connection(EventLoop* _loop, Socket* _sock)
     std::function<void()> callback_=std::bind(&Connection::echo,this,sock->getFd());
     channel->setCallback(callback_);
     channel->enableReading();
-}
+    readBuffer = new Buffer();
+}   
 
 Connection::~Connection() {
     delete channel;
@@ -29,16 +33,17 @@ void Connection::echo(int sockfd) {
         // 从客户端socket读到缓冲区，返回已读数据大小
         ssize_t read_bytes=read(sockfd,buf,sizeof(buf)); 
         if(read_bytes>0){
-            printf("message from client fd %d: %s\n",sockfd,buf);
-            // 将相同的数据写回到客户端  
-            write(sockfd,buf,sizeof(buf));       
+            readBuffer->append(buf,read_bytes);
         }else if (read_bytes == -1 && errno == EINTR){
             //客户端正常中断、继续读取
             printf("continue reading");
             continue;
         }else if(read_bytes==-1 && ((errno == EAGAIN) || (errno==EWOULDBLOCK))){
             // 非阻塞IO，这个条件表示数据全部读取完毕
-            printf("finish reading once, errno: %d\n", errno);
+            printf("finish reading once\n");
+            printf("message from client fd %d: %s\n",sockfd,readBuffer->c_str());
+            errif(write(sockfd,readBuffer->c_str(),readBuffer->size())==-1,"socket write error");
+            readBuffer->clear();
             break;
         }else if(read_bytes==0){
             // EOF，客户端断开连接
